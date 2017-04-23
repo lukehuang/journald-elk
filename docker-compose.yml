@@ -1,0 +1,62 @@
+---
+
+version: '2'
+services:
+  kafka-zookeeper:
+    image: spotify/kafka
+    ports:
+      - 2181:2181
+      - 9092:9092
+    environment:
+      - AUTO_CREATE_TOPICS=true
+      - ADVERTISED_PORT=9092
+
+  journalbeat:
+    image: eu.gcr.io/avatao-public/journalbeat:el7
+    depends_on:
+      - kafka-zookeeper
+    links:
+      - kafka-zookeeper
+    volumes:
+      - /etc/machine-id:/etc/machine-id
+      - /var/log/journal:/var/log/journal
+      - /run/log/journal:/run/log/journal
+      - ./journalbeat.yml:/etc/journalbeat/journalbeat.yml
+      #- /var/run/systemd/journal/socket:/var/run/systemd/journal/socket:z
+    environment:
+      - KAFKA_HOST=kafka-zookeeper:9092
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:5.3.1
+    volumes:
+      - ./logstash-conf/:/usr/share/logstash/config
+      - ./logstash-pipeline/:/usr/share/logstash/pipeline/
+      - ls-local-log:/mnt/logstash
+    depends_on:
+      - journalbeat
+    links:
+      - journalbeat
+    
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:5.3.1
+    cap_add:
+      - IPC_LOCK
+    mem_limit: 1g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - 9200:9200
+    volumes:
+      - esdata1:/usr/share/elasticsearch/data
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.name=docker-cluster
+
+volumes:
+  esdata1:
+  ls-local-log:

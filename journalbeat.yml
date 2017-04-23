@@ -1,0 +1,41 @@
+
+# journalbeat config that attempts to stream logs to kafka by default
+
+journalbeat:
+  seek_position: cursor
+  cursor_seek_fallback: tail
+  write_cursor_state: true
+  cursor_state_file: /journalbeat-data/journalbeat-cursor-state
+  cursor_flush_period: 5s
+  clean_field_names: true
+  convert_to_numbers: false
+  move_metadata_to_field: journal
+  #units: ["docker.service", "auitd.service"] # you could filter specific units on the beat level if you do not want logstash to do it
+
+name: journalbeat
+
+output.kafka:
+  # initial brokers for reading cluster metadata
+  hosts: 
+    - ${KAFKA_HOST}
+  # do not set these by default
+  #username: ${KAFKA_USERNAME:-}
+  #password: ${KAFKA_PASSWORD:-}
+  # message topic selection + partitioning
+  topic: 'journal'
+  #topic: 'journal-%{[journal][syslog_identifier]}'
+  max_retries: 5
+  required_acks: 1
+  compression: gzip
+  max_message_bytes: 1000000
+  worker: 3
+  bulk_max_size: 1024
+
+
+logging.level: info
+logging.to_files: true
+logging.to_syslog: false
+logging.files:
+  path: /var/log/journalbeat
+  name: journalbeat.log
+  keepfiles: 2
