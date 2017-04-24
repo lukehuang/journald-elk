@@ -25,6 +25,7 @@ services:
       #- /var/run/systemd/journal/socket:/var/run/systemd/journal/socket:z
     environment:
       - KAFKA_HOST=kafka-zookeeper:9092
+    restart: always
 
   logstash:
     image: docker.elastic.co/logstash/logstash:5.3.1
@@ -36,6 +37,7 @@ services:
       - journalbeat
     links:
       - journalbeat
+    restart: always
     
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:5.3.1
@@ -52,10 +54,11 @@ services:
     expose:
       - 9200
     volumes:
-      - esdata1:/usr/share/elasticsearch/data
+      - esdata:/usr/share/elasticsearch/data
     environment:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - cluster.name=docker-cluster
+    restart: on-failure:5
 
   es_curator_cron_delete:
     image: eldersoss/curator-docker
@@ -80,5 +83,5 @@ services:
       - XPACK_MONITORING_UI_CONTAINER_ELASTICSEARCH_ENABLED=true
 
 volumes:
-  esdata1:
+  esdata:
   ls-local-log:
