@@ -57,6 +57,14 @@ services:
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - cluster.name=docker-cluster
 
+  es_curator_cron_delete:
+    image: eldersoss/curator-docker
+    command: "--http_auth elastic:changeme --host elasticsearch --port 9200 delete indices --older-than 10 --timestring '%Y.%m.%d' --time-unit days"
+    links:
+        - elasticsearch
+    restart: always
+
+ 
   kibana:
     image: docker.elastic.co/kibana/kibana:5.3.1
     ports:
