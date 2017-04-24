@@ -49,8 +49,8 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-    ports:
-      - 9200:9200
+    expose:
+      - 9200
     volumes:
       - esdata1:/usr/share/elasticsearch/data
     environment:
