@@ -18,6 +18,5 @@ Debugging:
  * `docker-compose logs -f elasticsearch` or see the indexed messages by running `curl -u elastic:changeme localhost:9200/logstash-YYYY-MM-dd/_search?pretty` 
 
 TODO:
- * Logstash parsing is still not OK (tried json_lines codec as well, did not work)
- * Kibana UI
+ * Multiline message support & testing
 
